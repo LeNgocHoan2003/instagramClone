@@ -18,7 +18,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  
+
   Uint8List? _image;
   bool _isLoading = false;
   String? _photoUrl;
@@ -46,42 +46,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void selectImage() async {
-  showModalBottomSheet(
-    context: context,
-    builder: (BuildContext context) {
-      return Wrap(
-        children: [
-          ListTile(
-            leading: Icon(Icons.photo_library),
-            title: Text('Chọn từ thư viện'),
-            onTap: () async {
-              Navigator.pop(context); // Đóng BottomSheet
-              Uint8List? im = await pickImage(ImageSource.gallery);
-              if (im != null) {
-                setState(() {
-                  _image = im;
-                });
-              }
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.camera_alt),
-            title: Text('Chụp ảnh mới'),
-            onTap: () async {
-              Navigator.pop(context); // Đóng BottomSheet
-              Uint8List? im = await pickImage(ImageSource.camera);
-              if (im != null) {
-                setState(() {
-                  _image = im;
-                });
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text('Chọn từ thư viện'),
+              onTap: () async {
+                Navigator.pop(context); // Đóng BottomSheet
+                Uint8List? im = await pickImage(ImageSource.gallery);
+                if (im != null) {
+                  setState(() {
+                    _image = im;
+                  });
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text('Chụp ảnh mới'),
+              onTap: () async {
+                Navigator.pop(context); // Đóng BottomSheet
+                Uint8List? im = await pickImage(ImageSource.camera);
+                if (im != null) {
+                  setState(() {
+                    _image = im;
+                  });
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void updateProfile() async {
     setState(() {
@@ -90,9 +90,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     String uid = FirebaseAuth.instance.currentUser!.uid;
     String? newPhotoUrl = _photoUrl;
+    
 
     if (_image != null) {
-      newPhotoUrl = await StorageMethods().uploadImageToStorage('profilePics', _image!, false);
+      newPhotoUrl = await StorageMethods()
+          .uploadImageToStorage('profilePics', _image!, false);
     }
 
     await FirebaseFirestore.instance.collection('users').doc(uid).update({
@@ -101,6 +103,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'email': emailController.text,
       'photoUrl': newPhotoUrl,
     });
+
+    QuerySnapshot postsSnapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .where('uid', isEqualTo: uid) // Lọc bài viết của user
+        .get();
+
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+    for (var doc in postsSnapshot.docs) {
+      batch.update(doc.reference, {'username':  usernameController.text});
+    }
+
+    await batch.commit();
 
     setState(() {
       _isLoading = false;
@@ -144,8 +159,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         backgroundImage: _image != null
                             ? MemoryImage(_image!)
                             : (_photoUrl != null
-                                ? NetworkImage(_photoUrl!)
-                                : AssetImage('assets/default_avatar.png'))
+                                    ? NetworkImage(_photoUrl!)
+                                    : AssetImage('assets/default_avatar.png'))
                                 as ImageProvider,
                       ),
                       Positioned(

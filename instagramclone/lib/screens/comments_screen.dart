@@ -6,6 +6,7 @@ import 'package:instagramclone/resources/firestore_methods.dart';
 import 'package:instagramclone/utils/colors.dart';
 import 'package:instagramclone/utils/utils.dart';
 import 'package:instagramclone/widgets/comment_card.dart';
+import 'package:instagramclone/widgets/post_card.dart';
 
 import 'package:provider/provider.dart';
 
@@ -20,7 +21,7 @@ class CommentsScreen extends StatefulWidget {
 class _CommentsScreenState extends State<CommentsScreen> {
   final TextEditingController commentEditingController =
       TextEditingController();
-
+  
   void postComment(String uid, String name, String profilePic) async {
     try {
       await FirestoreMethods().postComment(
@@ -34,9 +35,9 @@ class _CommentsScreenState extends State<CommentsScreen> {
       // if (res != 'success') {
       //   if (context.mounted) showSnackBar(context, res);
       // }
-      // setState(() {
-      //   commentEditingController.text = "";
-      // });
+      setState(() {
+        commentEditingController.text = "";
+      });
     } catch (err) {
       showSnackBar(
         context,
@@ -44,11 +45,31 @@ class _CommentsScreenState extends State<CommentsScreen> {
       );
     }
   }
+  late DocumentSnapshot postsSnap;
+  bool isLoading = true; // Thêm biến loading
+
+Future<void> getPost() async {
+  DocumentSnapshot snap = await FirebaseFirestore.instance
+      .collection('posts')
+      .doc(widget.postId)
+      .get();
+
+  setState(() {
+    postsSnap = snap;
+    isLoading = false; // Dữ liệu đã tải xong
+  });
+}
+
+@override
+void initState() {
+  super.initState();
+  getPost();
+}
 
   @override
   Widget build(BuildContext context) {
     final User user = Provider.of<UserProvider>(context).getUser;
-
+    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
@@ -57,27 +78,37 @@ class _CommentsScreenState extends State<CommentsScreen> {
         ),
         centerTitle: false,
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('posts')
-            .doc(widget.postId)
-            .collection('comments')
-            .snapshots(),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (ctx, index) => CommentCard(
-              snap: snapshot.data!.docs[index],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+             isLoading
+        ? Center(child: CircularProgressIndicator()) // Hiển thị loading khi chưa có dữ liệu
+        : PostCard(snap: postsSnap, showViewAllCmt: false,),
+            StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('posts')
+                  .doc(widget.postId)
+                  .collection('comments').orderBy('datePublished',descending: true)
+                  .snapshots(),
+              builder: (context,
+                  AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+            
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (ctx, index) => CommentCard(
+                    snap: snapshot.data!.docs[index],
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ],
+        ),
       ),
       // text input
       bottomNavigationBar: SafeArea(

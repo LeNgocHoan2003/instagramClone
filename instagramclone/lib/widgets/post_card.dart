@@ -13,7 +13,8 @@ import 'package:provider/provider.dart';
 
 class PostCard extends StatefulWidget {
   final snap;
-  const PostCard({super.key, required this.snap});
+  bool showViewAllCmt;
+  PostCard({super.key, required this.snap, this.showViewAllCmt = true});
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -96,7 +97,11 @@ class _PostCardState extends State<PostCard> {
             child: Row(
               children: [
                 InkWell(
-                  onTap:() => Navigator.push(context,MaterialPageRoute(builder: (context) => ProfileScreen(uid: widget.snap['uid']))),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ProfileScreen(uid: widget.snap['uid']))),
                   child: CircleAvatar(
                     radius: 20,
                     backgroundImage:
@@ -197,9 +202,13 @@ class _PostCardState extends State<PostCard> {
                       milliseconds: 400,
                     ),
                     onEnd: () {
-                      setState(() {
+                      if(mounted)
+                      {
+                        setState(() {
                         isLikeAnimating = false;
                       });
+                      }
+                      
                     },
                     child: const Icon(
                       Icons.favorite,
@@ -265,43 +274,37 @@ class _PostCardState extends State<PostCard> {
                     future: getFirstLikerName(widget.snap['likes']),
                     builder: (context, AsyncSnapshot<String> snapshot) {
                       if (!snapshot.hasData || snapshot.data == '')
-                        return const SizedBox(); 
+                        return const SizedBox();
 
                       String firstLikerName = snapshot.data!;
                       int likeCount = widget.snap['likes'].length;
 
-                      return DefaultTextStyle(
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall!
-                            .copyWith(fontWeight: FontWeight.w800),
-                        child: RichText(
-                          text: TextSpan(
-                            style: Theme.of(context).textTheme.bodySmall,
-                            children: [
+                      return RichText(
+                        text: TextSpan(
+                          // style: Theme.of(context).textTheme.bodySmall,
+                          children: [
+                            const TextSpan(
+                              text: 'Liked by ',
+                              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+                            ),
+                            TextSpan(
+                              text: firstLikerName,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            if (likeCount > 1) ...[
                               const TextSpan(
-                                text: 'Liked by ',
-                                style: TextStyle(fontWeight: FontWeight.normal),
+                                text: ' and ',
+                                style:
+                                    TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
                               ),
                               TextSpan(
-                                text: firstLikerName,
+                                text: '${likeCount - 1} others',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold, fontSize: 14),
                               ),
-                              if (likeCount > 1) ...[
-                                const TextSpan(
-                                  text: ' and ',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.normal),
-                                ),
-                                TextSpan(
-                                  text: '${likeCount - 1} others',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
                             ],
-                          ),
+                          ],
                         ),
                       );
                     },
@@ -320,14 +323,14 @@ class _PostCardState extends State<PostCard> {
                                   fontWeight: FontWeight.bold, fontSize: 16)),
                           TextSpan(
                               text: " " + widget.snap['description'].toString(),
-                              style: TextStyle(fontSize: 16))
+                              style: TextStyle(fontSize: 14))
                         ]),
                   ),
                 ),
                 SizedBox(
                   height: 4,
                 ),
-                commentLen > 0
+                (commentLen > 0 && widget.showViewAllCmt)
                     ? InkWell(
                         child: Container(
                           child: Text(
@@ -338,22 +341,27 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                         onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => CommentsScreen(
-                        postId: widget.snap['postId'].toString(),
-                      ),
-                    ),
-                  ),
+                          MaterialPageRoute(
+                            builder: (context) => CommentsScreen(
+                              postId: widget.snap['postId'].toString(),
+                            ),
+                          ),
+                        ),
                       )
                     : const SizedBox(), // Ẩn nếu không có comment
 
                 Container(
-                  child: Text(
-                    DateFormat.yMMMd()
-                        .format(widget.snap['datePublished'].toDate()),
-                    // style: const TextStyle(fontSize: 16, color: secondaryColor),
+                    child: Text.rich(
+                  TextSpan(
+                    text: DateFormat.yMMMd()
+                        .format(widget.snap['datePublished'].toDate()), // Ngày
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: secondaryColor,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
-                ),
+                )),
               ],
             ),
           ),

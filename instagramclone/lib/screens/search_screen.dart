@@ -70,7 +70,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           backgroundImage: userData.containsKey('photoUrl') &&
                                   userData['photoUrl'].isNotEmpty
                               ? NetworkImage(userData['photoUrl'])
-                              : AssetImage('assets/default_avatar.png')
+                              : AssetImage('assets/default-avatar.png')
                                   as ImageProvider,
                           radius: 16,
                         ),

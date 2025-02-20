@@ -119,7 +119,7 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
                     child: const CircleAvatar(
                       radius: 14,
                       backgroundImage:
-                          AssetImage('assets/default_avatar.png'), // Ảnh mặc định
+                          AssetImage('assets/default-avatar.png'), // Ảnh mặc định
                     ),
                   );
                 }
