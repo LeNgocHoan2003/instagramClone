@@ -50,34 +50,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void signUpUser() async {
-    setState(() {
-      isLoading = true;
-    });
+  setState(() {
+    isLoading = true;
+  });
 
-    Uint8List defaultImage = await getDefaultImage();
+  Uint8List defaultImage = await getDefaultImage();
 
-    String res = await AuthMethods().signUpUser(
-        email: emailEditingController.text,
-        password: passEditingController.text,
-        username: userNameEditingController.text,
-        bio: bioEditingController.text,
-        file: image ?? defaultImage);
+  String res = await AuthMethods().signUpUser(
+    email: emailEditingController.text,
+    password: passEditingController.text,
+    username: userNameEditingController.text,
+    bio: bioEditingController.text,
+    file: image ?? defaultImage,
+  );
 
-    if (res == 'success') {
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => LoginScreen()
-          ),
-        );
-      }
-    } else {
-      showSnackBar(context, res);
+  if (res == "Please verify your email before logging in") {
+    if (context.mounted) {
+      showSnackBar(
+        context,
+        "A verification email has been sent. Please check your inbox before logging in.",
+      );
     }
-    setState(() {
-      isLoading = false;
-    });
+  } else {
+    showSnackBar(context, res);
   }
+
+  setState(() {
+    isLoading = false;
+  });
+}
+
 
   @override
   void dispose() {

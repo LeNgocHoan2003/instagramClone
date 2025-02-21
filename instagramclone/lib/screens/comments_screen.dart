@@ -32,11 +32,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
         profilePic,
       );
 
-      // if (res != 'success') {
-      //   if (context.mounted) showSnackBar(context, res);
-      // }
+      
       setState(() {
         commentEditingController.text = "";
+        FocusScope.of(context).unfocus();
       });
     } catch (err) {
       showSnackBar(
@@ -74,7 +73,7 @@ void initState() {
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
         title: const Text(
-          'Comments',
+          'Post',
         ),
         centerTitle: false,
       ),

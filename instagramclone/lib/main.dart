@@ -7,7 +7,6 @@ import 'package:instagramclone/reponsive/mobile_screen_layout.dart';
 import 'package:instagramclone/reponsive/responsive_layout_screen.dart';
 import 'package:instagramclone/reponsive/web_screen_layout.dart';
 import 'package:instagramclone/screens/login_screen.dart';
-import 'package:instagramclone/screens/sign_up_screen.dart';
 import 'package:instagramclone/utils/colors.dart';
 import 'package:provider/provider.dart';
 

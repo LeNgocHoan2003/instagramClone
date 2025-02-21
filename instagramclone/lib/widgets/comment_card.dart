@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:instagramclone/screens/profile_screen.dart';
+import 'package:instagramclone/utils/colors.dart';
 import 'package:intl/intl.dart';
 
 class CommentCard extends StatelessWidget {
@@ -12,11 +14,22 @@ class CommentCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       child: Row(
         children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage(
-              snap.data()['profilePic'],
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileScreen(
+                              uid: snap.data()['uid']),
+                        ),
+                      );
+            },
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                snap.data()['profilePic'],
+              ),
+              radius: 18,
             ),
-            radius: 18,
           ),
           Expanded(
             child: Padding(
@@ -30,10 +43,10 @@ class CommentCard extends StatelessWidget {
                       children: [
                         TextSpan(
                           text: snap.data()['name'],
-                          style: const TextStyle(fontWeight: FontWeight.bold,)
+                          style: const TextStyle(fontWeight: FontWeight.bold,color:primaryColor)
                         ),
                         TextSpan(
-                          text: ' ${snap.data()['text']}',
+                          text: ' ${snap.data()['text']}',style: TextStyle(color:primaryColor )
                         ),
                       ],
                     ),

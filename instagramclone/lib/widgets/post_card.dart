@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:instagramclone/models/user.dart' as model;
 import 'package:instagramclone/providers/user_provider.dart';
@@ -186,8 +187,9 @@ class _PostCardState extends State<PostCard> {
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.35,
-                  width: double.infinity,
+                  height:
+                      MediaQuery.of(context).size.height * 0.35,
+                  width:double.infinity,
                   child: Image.network(
                     widget.snap['postUrl'],
                     fit: BoxFit.cover,
@@ -202,13 +204,11 @@ class _PostCardState extends State<PostCard> {
                       milliseconds: 400,
                     ),
                     onEnd: () {
-                      if(mounted)
-                      {
+                      if (mounted) {
                         setState(() {
-                        isLikeAnimating = false;
-                      });
+                          isLikeAnimating = false;
+                        });
                       }
-                      
                     },
                     child: const Icon(
                       Icons.favorite,
@@ -281,27 +281,36 @@ class _PostCardState extends State<PostCard> {
 
                       return RichText(
                         text: TextSpan(
-                          // style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall,
                           children: [
                             const TextSpan(
                               text: 'Liked by ',
-                              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 14,
+                                  color: primaryColor),
                             ),
                             TextSpan(
                               text: firstLikerName,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 14),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: primaryColor),
                             ),
                             if (likeCount > 1) ...[
                               const TextSpan(
                                 text: ' and ',
-                                style:
-                                    TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 14,
+                                    color: primaryColor),
                               ),
                               TextSpan(
                                 text: '${likeCount - 1} others',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 14),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: primaryColor),
                               ),
                             ],
                           ],

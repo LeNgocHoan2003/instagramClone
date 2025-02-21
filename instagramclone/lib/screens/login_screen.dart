@@ -5,6 +5,8 @@ import 'package:instagramclone/reponsive/web_screen_layout.dart';
 import 'package:instagramclone/resources/auth_methods.dart';
 import 'package:instagramclone/screens/sign_up_screen.dart';
 import 'package:instagramclone/utils/colors.dart';
+import 'package:instagramclone/utils/global_variables.dart';
+import 'package:instagramclone/utils/utils.dart';
 import 'package:instagramclone/widgets/text_field_input.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,6 +27,36 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+  }
+
+  void signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+    String res = await AuthMethods().signInWithGoogle();
+    if (res == 'success') {
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => ResponsiveLayout(
+                mobileScreenLayout: MobileScreenLayout(),
+                webScreenLayout: WebScreenLayout(),
+              ),
+            ),
+            (route) => false);
+
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      if (context.mounted) {
+        showSnackBar(context, res);
+      }
+    }
   }
 
   void loginUser() async {
@@ -52,9 +84,9 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
       });
-      // if (context.mounted) {
-      //   showSnackBar(context, res);
-      // }
+      if (context.mounted) {
+        showSnackBar(context, res);
+      }
     }
   }
 
@@ -64,7 +96,10 @@ class _LoginScreenState extends State<LoginScreen> {
         resizeToAvoidBottomInset: false,
         body: SafeArea(
           child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 32),
+              padding: MediaQuery.of(context).size.width > webScreenSize
+              ? EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width / 3)
+              : const EdgeInsets.symmetric(horizontal: 32),
               width: double.infinity,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -117,7 +152,70 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(
-                      height: 12,
+                      height: 24,
+                    ),
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  color: Colors.grey,
+                                  thickness: 1,
+                                  endIndent: 10,
+                                ),
+                              ),
+                              Text(
+                                "Or log in with",
+                                style:
+                                    TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: Colors.grey,
+                                  thickness: 1,
+                                  indent: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          // Nút Google
+                          Center(
+                            child: GestureDetector(
+                              onTap: () {
+                                signInWithGoogle();
+                              },
+                              child: Container(
+                                width: 45, // Định kích thước nút
+                                height: 45,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white, // Màu nền nút (tuỳ chọn)
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 6,
+                                      spreadRadius: 2,
+                                      offset: Offset(0, 3),
+                                    )
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    "assets/gg.jpg",
+                                    fit: BoxFit.cover, // Cắt ảnh để vừa với nút
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                     Flexible(
                       flex: 2,

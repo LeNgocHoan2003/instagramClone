@@ -17,13 +17,15 @@ class ResponsiveLayout extends StatefulWidget {
 }
 
 class _ResponsiveLayoutState extends State<ResponsiveLayout> {
+  late Future<void> _dataFuture;
+
   @override
   void initState() {
     super.initState();
-    addData();
+    _dataFuture = addData();
   }
 
-  addData() async {
+  Future<void> addData() async {
     UserProvider userProvider =
         Provider.of<UserProvider>(context, listen: false);
     await userProvider.refreshUser();
@@ -31,11 +33,21 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth > webScreenSize) {
-        return widget.webScreenLayout;
-      }
-      return widget.mobileScreenLayout;
-    });
+    return FutureBuilder(
+      future: _dataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth > webScreenSize) {
+              return widget.webScreenLayout;
+            }
+            return widget.mobileScreenLayout;
+          },
+        );
+      },
+    );
   }
 }

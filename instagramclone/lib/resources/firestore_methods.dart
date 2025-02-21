@@ -62,24 +62,27 @@ class FirestoreMethods {
         await _firestore.collection('notifications').doc(doc.id).delete();
       }
     } else {
-      // Nếu chưa like, thì like và thêm thông báo
+      // Nếu chưa like, thì like bài viết
       await _firestore.collection('posts').doc(postId).update({
         'likes': FieldValue.arrayUnion([uid])
       });
 
-      // Thêm thông báo vào `notifications/{notificationId}`
-      await _firestore.collection('notifications').add({
-        'type': 'like',
-        'senderId': uid,
-        'receiverId': postOwnerId,
-        'postId': postId,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      // Chỉ thêm thông báo nếu người like không phải là chủ bài viết
+      if (uid != postOwnerId) {
+        await _firestore.collection('notifications').add({
+          'type': 'like',
+          'senderId': uid,
+          'receiverId': postOwnerId,
+          'postId': postId,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      }
     }
   } catch (e) {
     print(e.toString());
   }
 }
+
 
 
   Future<void> postComment(String postId, String text, String uid, String name,

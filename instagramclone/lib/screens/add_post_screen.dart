@@ -30,25 +30,30 @@ class _AddPostScreenState extends State<AddPostScreen> {
           title: const Text('Create a Post'),
           children: <Widget>[
             SimpleDialogOption(
-                padding: const EdgeInsets.all(20),
-                child: const Text('Take a photo'),
-                onPressed: () async {
-                  Navigator.pop(context);
-                  Uint8List file = await pickImage(ImageSource.camera);
-                  setState(() {
-                    _file = file;
-                  });
-                }),
-            SimpleDialogOption(
-                padding: const EdgeInsets.all(20),
-                child: const Text('Choose from Gallery'),
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  Uint8List file = await pickImage(ImageSource.gallery);
-                  setState(() {
-                    _file = file;
-                  });
-                }),
+  padding: const EdgeInsets.all(20),
+  child: const Text('Take a photo'),
+  onPressed: () async {
+    Navigator.pop(context);
+    Uint8List? file = await pickImage(ImageSource.camera);
+    if (file == null) return; // Nếu không chọn ảnh, thoát luôn
+    setState(() {
+      _file = file;
+    });
+  },
+),
+SimpleDialogOption(
+  padding: const EdgeInsets.all(20),
+  child: const Text('Choose from Gallery'),
+  onPressed: () async {
+    Navigator.of(context).pop();
+    Uint8List? file = await pickImage(ImageSource.gallery);
+    if (file == null) return; // Nếu không chọn ảnh, thoát luôn
+    setState(() {
+      _file = file;
+    });
+  },
+),
+
             SimpleDialogOption(
               padding: const EdgeInsets.all(20),
               child: const Text("Cancel"),
@@ -126,61 +131,47 @@ class _AddPostScreenState extends State<AddPostScreen> {
               centerTitle: true,
             ),
             body: GestureDetector(
-              onTap: () => _selectImage(context),
-              child: DottedBorder(
-                        color: secondaryColor,
-                        strokeWidth: 2,
-                        dashPattern: [6, 3],
-                        borderType: BorderType.RRect,
-                        radius: Radius.circular(8),
+                onTap: () => _selectImage(context),
+                child: Scaffold(
+                  body: Center(
+                    // Đưa toàn bộ khung hình vuông vào giữa màn hình
+                    child: DottedBorder(
+                      color: secondaryColor,
+                      strokeWidth: 2,
+                      dashPattern: [6, 3],
+                      borderType: BorderType.RRect,
+                      radius: Radius.circular(20),
+                      child: SizedBox(
+                        width: 320,
+                        height: 320,
                         child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.image,
-                    size: 80,
-                    color: secondaryColor,
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Upload an Image',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: primaryColor,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  // Container(
-                  //   decoration: BoxDecoration(
-                  //     color: mobileSearchColor,
-                  //     shape: BoxShape.circle,
-                  //     boxShadow: [
-                  //       BoxShadow(
-                  //         color: Colors.black.withOpacity(0.3),
-                  //         blurRadius: 10,
-                  //         spreadRadius: 2,
-                  //         offset: Offset(0, 5),
-                  //       ),
-                  //     ],
-                  //   ),
-                  //   child: IconButton(
-                  //     icon: Icon(
-                  //       Icons.upload_rounded,
-                  //       size: 50,
-                  //       color: lightBlueColor,
-                  //     ),
-                  //     onPressed: () => _selectImage(context),
-                  //     splashRadius: 40,
-                  //   ),
-                  // ),
-                ],
-              ),
+                          // Đưa nội dung bên trong vào giữa
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.image,
+                                size: 80,
+                                color: secondaryColor,
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Upload an Image',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-            ),
-      
+                    ),
+                  ),
+                )),
           )
         : Scaffold(
             backgroundColor: mobileBackgroundColor, // Nền đen
@@ -191,7 +182,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 onPressed: clearImage,
               ),
               title: const Text(
-                'Post to',
+                'Create new post',
                 style:
                     TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
               ),
