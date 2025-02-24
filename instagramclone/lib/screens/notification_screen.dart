@@ -20,6 +20,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text('Notifications'),
+          centerTitle: true,
         ),
         body: StreamBuilder(
           stream: FirebaseFirestore.instance

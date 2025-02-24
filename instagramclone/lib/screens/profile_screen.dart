@@ -77,23 +77,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onRefresh: () => getData(),
             child: Scaffold(
               appBar: AppBar(
-                backgroundColor: mobileBackgroundColor,
-                title: Text(
-                  userData['username'],
-                ),
-                centerTitle: false,
-                leading: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(
-                              uid: FirebaseAuth.instance.currentUser!.uid),
-                        ),
-                      );
-                    },
-                    child: Icon(Icons.settings)),
-              ),
+                  backgroundColor: mobileBackgroundColor,
+                  title: Text(
+                    userData['username'],
+                  ),
+                  centerTitle: false,
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: PopupMenuButton<String>(
+                        icon: Icon(Icons.settings), // Biểu tượng cài đặt
+                        onSelected: (value) async {
+                          if (value == 'logout') {
+                            await AuthMethods().signOut();
+
+                            if (context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => LoginScreen(),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.red),
+                                SizedBox(width: 10),
+                                Text('Sign out'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
               body: ListView(
                 children: [
                   Padding(
@@ -119,42 +140,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        buildStatColumn(postLen, "posts"),
-                                        buildStatColumn(followers, "followers"),
-                                        buildStatColumn(following, "following"),
+                                        IgnorePointer(
+                                            child: buildStatColumn(
+                                                postLen,
+                                                "posts",
+                                                "posts",
+                                                userData['uid'])),
+                                        buildStatColumn(followers, "followers",
+                                            "followers", userData['uid']),
+                                        buildStatColumn(following, "following",
+                                            "following", userData['uid']),
                                       ],
                                     ),
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        FirebaseAuth.instance.currentUser!.uid ==
+                                        FirebaseAuth.instance.currentUser!
+                                                    .uid ==
                                                 widget.uid
                                             ? FollowButton(
-                                                text: 'Sign Out',
+                                                text: 'Edit profile',
                                                 backgroundColor:
                                                     mobileBackgroundColor,
                                                 textColor: primaryColor,
                                                 borderColor: Colors.grey,
                                                 function: () async {
-                                                  await AuthMethods().signOut();
-                                
-                                                  if (context.mounted) {
-                                                    Navigator.of(context)
-                                                        .pushReplacement(
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            LoginScreen(),
-                                                      ),
-                                                    );
-                                                  }
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          EditProfileScreen(
+                                                              uid: FirebaseAuth
+                                                                  .instance
+                                                                  .currentUser!
+                                                                  .uid),
+                                                    ),
+                                                  );
+                                                  // await AuthMethods().signOut();
+
+                                                  // if (context.mounted) {
+                                                  //   Navigator.of(context)
+                                                  //       .pushReplacement(
+                                                  //     MaterialPageRoute(
+                                                  //       builder: (context) =>
+                                                  //           LoginScreen(),
+                                                  //     ),
+                                                  //   );
+                                                  // }
                                                 },
                                               )
                                             : isFollowing
                                                 ? RepaintBoundary(
-                                                  child: FollowButton(
+                                                    child: FollowButton(
                                                       text: 'Unfollow',
-                                                      backgroundColor: Colors.white,
+                                                      backgroundColor:
+                                                          Colors.white,
                                                       textColor: Colors.black,
                                                       borderColor: Colors.grey,
                                                       function: () async {
@@ -164,18 +205,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                               .currentUser!.uid,
                                                           userData['uid'],
                                                         );
-                                                  
+
                                                         setState(() {
                                                           isFollowing = false;
                                                           followers--;
                                                         });
                                                       },
                                                     ),
-                                                )
+                                                  )
                                                 : RepaintBoundary(
-                                                  child: FollowButton(
+                                                    child: FollowButton(
                                                       text: 'Follow',
-                                                      backgroundColor: Colors.blue,
+                                                      backgroundColor:
+                                                          Colors.blue,
                                                       textColor: Colors.white,
                                                       borderColor: Colors.blue,
                                                       function: () async {
@@ -185,14 +227,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                               .currentUser!.uid,
                                                           userData['uid'],
                                                         );
-                                                  
+
                                                         setState(() {
                                                           isFollowing = true;
                                                           followers++;
                                                         });
                                                       },
                                                     ),
-                                                )
+                                                  )
                                       ],
                                     ),
                                   ],
@@ -278,30 +320,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
   }
 
-  Column buildStatColumn(int num, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          num.toString(),
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 4),
-          child: Text(
-            label,
+  GestureDetector buildStatColumn(
+      int num, String label, String type, String userId) {
+    return GestureDetector(
+      onTap: () =>
+          showFollowersFollowingPopup(userId, type), // Khi ấn vào sẽ mở popup
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            num.toString(),
             style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-      ],
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showFollowersFollowingPopup(String userId, String type) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return FutureBuilder<DocumentSnapshot>(
+          future:
+              FirebaseFirestore.instance.collection('users').doc(userId).get(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            Map<String, dynamic> userData =
+                snapshot.data!.data() as Map<String, dynamic>;
+            List<dynamic> usersList = userData[type] ?? [];
+
+            return Container(
+              height: 400,
+              padding: EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text(
+                    type == "followers" ? "Followers" : "Following",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Divider(),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: usersList.length,
+                      itemBuilder: (context, index) {
+                        return FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(usersList[index])
+                              .get(),
+                          builder: (context, userSnapshot) {
+                            if (!userSnapshot.hasData ||
+                                !userSnapshot.data!.exists) {
+                              return SizedBox.shrink();
+                            }
+
+                            Map<String, dynamic> user = userSnapshot.data!
+                                .data() as Map<String, dynamic>;
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(user['photoUrl']),
+                              ),
+                              title: Text(user['username']),
+                              subtitle: Text(user['email']),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
